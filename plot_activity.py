@@ -137,7 +137,7 @@ def plot_activity(series):
 
     ax.xaxis.tick_top()
 
-    plt.savefig('activity.png')
+    plt.savefig('activity.png', bbox_inches='tight')
 
 def main(token):
     review_data = get_data(token)
