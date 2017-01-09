@@ -50,7 +50,7 @@ def get_data(token):
 
     return review_data
 
-def parse_data(data):
+def parse_data(data, timezone=pytz.timezone('US/Pacific')):
     """Parse the review data obtained through the `get_data` function.
 
     Attributes
@@ -58,6 +58,10 @@ def parse_data(data):
     data: list
         The list of dictionaries where each dictionary gives information on one
         completed submission. It is the output of the `get_data` function
+
+    timezone: pytz.timezone
+        A valid pytz timezone. Default is the Pacific Standard Time, which is
+        the one used by Udacity
 
     Returns
     -------
@@ -72,11 +76,9 @@ def parse_data(data):
                              index=pd.to_datetime(date_price_data[:, 0]))
     price_series = price_series.sort_index()
 
-    # Convert timezone to Udacity's
+    # Convert timezone
     utc = pytz.utc
-    pacific_tz = pytz.timezone('US/Pacific') # Udacity timezone
-
-    price_series = price_series.tz_localize(utc).tz_convert(pacific_tz)
+    price_series = price_series.tz_localize(utc).tz_convert(timezone)
 
 
     # Calculate the gain by day
