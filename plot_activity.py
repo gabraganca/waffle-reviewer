@@ -50,8 +50,8 @@ def get_data(token):
 
     return review_data
 
-def parse_data(data, timezone=pytz.timezone('US/Pacific')):
-    """Parse the review data obtained through the `get_data` function.
+def get_daily_gain(data, timezone=pytz.timezone('US/Pacific')):
+    """Obtain the daily gain.
 
     Attributes
     ----------
@@ -84,11 +84,15 @@ def parse_data(data, timezone=pytz.timezone('US/Pacific')):
     # Calculate the gain by day
     daily_gain = price_series.groupby(pd.TimeGrouper('D')).sum()
 
+    return daily_gain
+
+def fill_data(timeseries):
+
     # Fill dates from:
     # - Sunday before the current date minus one year
     # - up to next saturday.
 
-    last_date = daily_gain.index.max()
+    last_date = timeseries.index.max()
 
     one_year_date = last_date - timedelta(days=365)
 
@@ -107,9 +111,9 @@ def parse_data(data, timezone=pytz.timezone('US/Pacific')):
     date_range_index = pd.date_range(starting_date, ending_date)
     date_range_series = pd.Series(0, index=date_range_index)
 
-    daily_gain = daily_gain.combine_first(date_range_series).fillna(method='ffill')
+    timeseries = timeseries.combine_first(date_range_series).fillna(method='ffill')
 
-    return daily_gain
+    return timeseries
 
 def plot_activity(series):
     """Plots the Reviewers' activity"""
@@ -137,7 +141,8 @@ def plot_activity(series):
 
 def main(token):
     review_data = get_data(token)
-    daily_gain = parse_data(review_data)
+    daily_gain = get_daily_gain(review_data)
+    daily_gain = fill_data(daily_gain)
     plot_activity(daily_gain)
 
 
