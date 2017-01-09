@@ -128,7 +128,7 @@ def plot_activity(series):
         else:
             current_month = month
 
-    fig, ax = plt.subplots(figsize=(15,200))
+    fig, ax = plt.subplots()
 
     sns.heatmap(series.values.reshape(-1,7).T, ax=ax,
                 cmap='YlGn', cbar=False, linewidths=1, square=True,
