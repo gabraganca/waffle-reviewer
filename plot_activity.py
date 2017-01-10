@@ -173,15 +173,26 @@ def fill_year(timeseries, value=0):
 
     return filled_timeseries
 
-def plot_activity(series):
+def plot_activity(series, savename='activity.png'):
     """Plots the Reviewers' activity"""
     # Fills the time series
+    ## Fill up to next staurday (end of the week)
     series = fill_week(series)
-    series = fill_year(series)
+    ### Fill or truncate timeseries to suit the plot
+    number_of_days = 371
+    if series.shape[0] > number_of_days:
+        # truncate to 371 days
+        series = series[-number_of_days:]
+    elif series.shape[0] < number_of_days:
+        # Fill remaing values with zero
+        series = fill_year(series)
+        assert series.shape[0] == number_of_days
 
-    months = series.index.map(lambda x: x.strftime('%b'))
     # Obtain the months for the years' week
-    months = months[0:-1:7]
+    months = series.index.map(lambda x: x.strftime('%b'))
+    n_weekdays = 7
+    # Split in weeks
+    months = months[::n_weekdays]
     # replace the repeated months
     current_month = ''
     for n, month in enumerate(months):
@@ -190,16 +201,17 @@ def plot_activity(series):
         else:
             current_month = month
 
+    # Plot
     fig, ax = plt.subplots()
 
-    sns.heatmap(series.values.reshape(-1,7).T, ax=ax,
+    sns.heatmap(series.values.reshape(-1,n_weekdays).T, ax=ax,
                 cmap='YlGn', cbar=False, linewidths=1, square=True,
                 xticklabels=months,
                 yticklabels=['','M', '', 'W', '', 'F', ''])
 
     ax.xaxis.tick_top()
 
-    plt.savefig('activity.png', bbox_inches='tight')
+    plt.savefig(savename, bbox_inches='tight')
 
 def main(token):
     review_data = get_data(token)
