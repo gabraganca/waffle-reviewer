@@ -4,6 +4,9 @@ It makes a GitHub style activity plot of the daily gains.
 
 ![Example](https://github.com/gabraganca/waffle-reviewer/blob/master/random_example.png)
 
+The days are in the Pacific Standard Time Zone, which is the one used by
+Udacity.
+
 ## Dependencies
 
 * requests
