@@ -131,10 +131,12 @@ def fill_week(timeseries, value=0):
     ending_date = last_date + timedelta(days_ahead)
 
     # Create a timeseries with value and the dates to fille the week
-    date_range_series = create_timeseries(last_date, ending_date, value)
+    date_range_series = create_timeseries(last_date+timedelta(days=1),
+                                          ending_date,
+                                          value)
 
     # Fill the original timeseries
-    filled_timeseries = timeseries.combine_first(date_range_series)
+    filled_timeseries = pd.concat([timeseries, date_range_series])
 
     return filled_timeseries
 
@@ -154,7 +156,8 @@ def fill_year(timeseries, value=0):
 
     Returns the time series with the year filled.
     """
-
+    # Obtain firts and last date from timeseries
+    first_date = timeseries.index.min()
     last_date = timeseries.index.max()
 
     one_year_date = last_date - timedelta(days=365)
@@ -166,10 +169,12 @@ def fill_year(timeseries, value=0):
 
 
     # Fill dates with mising zero
-    date_range_series = create_timeseries(starting_date, last_date, value)
+    date_range_series = create_timeseries(starting_date,
+                                          first_date-timedelta(days=1),
+                                          value)
 
     # Fill the original timeseries
-    filled_timeseries = timeseries.combine_first(date_range_series)
+    filled_timeseries = pd.concat([date_range_series, timeseries])
 
     return filled_timeseries
 
@@ -216,6 +221,9 @@ def plot_activity(series, savename='activity.png'):
 def main(token):
     review_data = get_data(token)
     daily_gain = get_daily_gain(review_data)
+    # Missing value are days not worked. So, revenue = 0.
+    daily_gain = daily_gain.fillna(0)
+
     plot_activity(daily_gain)
 
 
