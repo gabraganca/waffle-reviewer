@@ -86,11 +86,55 @@ def get_daily_gain(data, timezone=pytz.timezone('US/Pacific')):
 
     return daily_gain
 
-def fill_data(timeseries):
+def fill_week(timeseries, value=0):
+    """Fills the time series with values up to end of week (saturday).
 
-    # Fill dates from:
-    # - Sunday before the current date minus one year
-    # - up to next saturday.
+    Attributes
+    ----------
+    timeseries: pandas.Series
+        A Pandas Series where the index are datetimes.
+
+    value: int,float
+        Value to add to new entries. Default is zero.
+
+    Returns
+    ------
+
+    Returns the time series with the week filled.
+    """
+    last_date = timeseries.index.max()
+    saturday_id = 5
+
+    days_ahead = saturday_id - last_date.weekday()
+    if days_ahead < 0: # Target day already happened this week
+        days_ahead += 7
+    ending_date = last_date + timedelta(days_ahead)
+
+    # Create a timeseries with value and the dates to fille the week
+    date_range_index = pd.date_range(last_date, ending_date)
+    date_range_series = pd.Series(value, index=date_range_index)
+
+    # Fill the original timeseries
+    filled_timeseries = timeseries.combine_first(date_range_series)
+
+    return filled_timeseries
+
+def fill_year(timeseries, value=0):
+    """Fills the time series with values to complete a year
+
+    Attributes
+    ----------
+    timeseries: pandas.Series
+        A Pandas Series where the index are datetimes.
+
+    value: int,float
+        Value to add to new entries. Default is zero.
+
+    Returns
+    ------
+
+    Returns the time series with the year filled.
+    """
 
     last_date = timeseries.index.max()
 
@@ -99,24 +143,24 @@ def fill_data(timeseries):
     ## Obtain the sunday beofre the date of one year ago
     starting_date = one_year_date - timedelta(days=one_year_date.weekday()+1)
 
-    ## Calculate next saturday
-    saturday_id = 5
+    assert starting_date.weekday_name == 'Sunday'
 
-    days_ahead = saturday_id - last_date.weekday()
-    if days_ahead < 0: # Target day already happened this week
-        days_ahead += 7
-    ending_date = last_date + timedelta(days_ahead)
 
     # Fill dates with mising zero
-    date_range_index = pd.date_range(starting_date, ending_date)
-    date_range_series = pd.Series(0, index=date_range_index)
+    date_range_index = pd.date_range(starting_date, last_date)
+    date_range_series = pd.Series(value, index=date_range_index)
 
-    timeseries = timeseries.combine_first(date_range_series).fillna(method='ffill')
+    # Fill the original timeseries
+    filled_timeseries = timeseries.combine_first(date_range_series)
 
-    return timeseries
+    return filled_timeseries
 
 def plot_activity(series):
     """Plots the Reviewers' activity"""
+    # Fills the time series
+    series = fill_week(series)
+    series = fill_year(series)
+
     months = series.index.map(lambda x: x.strftime('%b'))
     # Obtain the months for the years' week
     months = months[0:-1:7]
@@ -142,7 +186,6 @@ def plot_activity(series):
 def main(token):
     review_data = get_data(token)
     daily_gain = get_daily_gain(review_data)
-    daily_gain = fill_data(daily_gain)
     plot_activity(daily_gain)
 
 
