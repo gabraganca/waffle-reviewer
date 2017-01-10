@@ -86,6 +86,26 @@ def get_daily_gain(data, timezone=pytz.timezone('US/Pacific')):
 
     return daily_gain
 
+def create_timeseries(starting_date, ending_date, value=0):
+    """Create a Pandas Time Series with constant values.
+
+    Attributes
+    ----------
+    starting_date: str, pandas.tslib.Timestamp
+        The first date of the Time Series.
+
+    ending_date: str, pandas.tslib.Timestamp
+        The last date of the Time Series.
+
+    value: int,float
+        Value to add to new entries. Default is zero.
+    """
+    timeseries_index = pd.date_range(starting_date, ending_date)
+    timeseries = pd.Series(value, index=timeseries_index)
+
+    return timeseries
+
+
 def fill_week(timeseries, value=0):
     """Fills the time series with values up to end of week (saturday).
 
@@ -111,8 +131,7 @@ def fill_week(timeseries, value=0):
     ending_date = last_date + timedelta(days_ahead)
 
     # Create a timeseries with value and the dates to fille the week
-    date_range_index = pd.date_range(last_date, ending_date)
-    date_range_series = pd.Series(value, index=date_range_index)
+    date_range_series = create_timeseries(last_date, ending_date, value)
 
     # Fill the original timeseries
     filled_timeseries = timeseries.combine_first(date_range_series)
@@ -147,8 +166,7 @@ def fill_year(timeseries, value=0):
 
 
     # Fill dates with mising zero
-    date_range_index = pd.date_range(starting_date, last_date)
-    date_range_series = pd.Series(value, index=date_range_index)
+    date_range_series = create_timeseries(starting_date, last_date, value)
 
     # Fill the original timeseries
     filled_timeseries = timeseries.combine_first(date_range_series)
