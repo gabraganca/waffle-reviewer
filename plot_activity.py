@@ -194,7 +194,7 @@ def plot_activity(series, savename='activity.png'):
         assert series.shape[0] == number_of_days
 
     # Obtain the months for the years' week
-    months = series.index.map(lambda x: x.strftime('%b'))
+    months = series.index.map(lambda x: x.strftime('%b')).tolist()
     n_weekdays = 7
     # Split in weeks
     months = months[::n_weekdays]
